@@ -5,6 +5,8 @@ import tempfile
 import whisper
 import requests
 from pathlib import Path
+import subprocess
+
 from pydantic import BaseModel
 import aiohttp
 import asyncio
@@ -25,7 +27,16 @@ class VideoRequest(BaseModel):
     video_url: str
 
 # -- download_video, extract_audio, transcribe_audio (same as above) --
+@app.get("/ffmpeg-check")
+def ffmpeg_check():
+    try:
+        result = subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return {"output": result.stdout.decode()}
+    except Exception as e:
+        return {"error": str(e)}
+    
 
+    
 @app.post("/transcribe/")
 async def transcribe_video(request: VideoRequest):
     with tempfile.TemporaryDirectory() as temp_dir:
